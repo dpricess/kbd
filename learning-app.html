@@ -2,67 +2,318 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Knowledge Database App</title>
+    <title>Interactive Learning App</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        #header { text-align: center; margin-bottom: 20px; }
-        #main-container { display: flex; flex: 1; overflow: hidden; }
-        #left-panel { width: 50%; display: flex; flex-direction: column; margin-right: 20px; }
-        #slide { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex: 1; position: relative; background: linear-gradient(to bottom right, #ffffff, #e6f0fa); overflow-y: auto; }
-        #right-panel { width: 50%; display: flex; flex-direction: column; gap: 20px; }
-        #content { font-size: 1.2em; line-height: 1.6; text-align: left; padding: 10px; }
-        #notes-container { position: absolute; bottom: 20px; right: 20px; width: 250px; text-align: left; }
-        #notes { width: 100%; height: 80px; padding: 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 5px; }
-        #save-notes { padding: 6px 12px; margin-top: 5px; background: #4caf50; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        #save-notes:hover { background: #388e3c; }
-        #options { margin: 10px 0; width: 100%; box-sizing: border-box; }
-        .option { padding: 8px; margin: 5px 0; background: #e3f2fd; border: 1px solid #2196f3; border-radius: 5px; cursor: pointer; }
-        .option:hover { background: #bbdefb; }
-        #feedback { font-size: 1.2em; margin: 10px 0; color: #d32f2f; }
-        #hint { font-size: 0.9em; color: #666; margin: 5px 0; }
-        #review-box { width: 100%; background: #fff; border: 1px solid #2196f3; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; font-size: 1em; line-height: 1.5; text-align: left; max-height: 40vh; overflow-y: auto; min-height: 100px; }
-        #edit-review-box { width: 100%; background: #fff; border: 1px solid #2196f3; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; font-size: 1em; line-height: 1.5; text-align: left; max-height: 40vh; overflow-y: auto; }
-        #edit-review-textarea { width: 100%; height: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; resize: vertical; }
-        #save-edit-review { margin-top: 10px; background: #4caf50; color: #fff; }
-        #save-edit-review:hover { background: #388e3c; }
-        button { padding: 8px 16px; margin: 5px; background: #2196f3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #1976d2; }
-        #review { position: absolute; bottom: 10px; right: 10px; background: #757575; color: #fff; }
-        #review:hover { background: #616161; }
-        #edit-review { position: absolute; bottom: 10px; right: 80px; background: #ff9800; color: #fff; }
-        #edit-review:hover { background: #f57c00; }
-        #next { align-self: flex-start; margin-top: 10px; width: auto; }
-        #progress { width: 80%; height: 10px; background: #ddd; border-radius: 5px; margin: 15px auto; }
-        #progress-bar { height: 100%; background: #4caf50; width: 0; transition: width 0.5s; }
-        select { padding: 5px; margin: 10px; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #eef2f7;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #333;
+        }
+        #header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        #header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #2c3e50;
+        }
+        #main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+        }
+        #left-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+        #slide {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            transition: transform 0.2s ease;
+        }
+        #slide:hover {
+            transform: translateY(-2px);
+        }
+        #right-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #content {
+            font-size: 1.2em;
+            line-height: 1.7;
+            text-align: left;
+            padding: 10px;
+        }
+        .vocab {
+            color: #3498db;
+            font-weight: 600;
+        }
+        #notes-container {
+            padding: 15px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        #notes {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        #notes:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        #save-notes {
+            padding: 8px 16px;
+            margin-top: 10px;
+            background: #2ecc71;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        #save-notes:hover {
+            background: #27ae60;
+        }
+        #options, #fillAnswer, #dragArea {
+            margin: 15px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .option, .drag-item, .drop-target {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f5f9fd;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .option:hover, .drag-item:hover {
+            background: #e9f1fa;
+            transform: translateY(-1px);
+        }
+        #fillAnswer {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+            display: none;
+            width: 100%;
+        }
+        #dragArea {
+            display: none;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #dragA, #dragB {
+            width: 48%;
+            min-height: 120px;
+        }
+        .drop-target {
+            background: #fff;
+            border: 2px dashed #3498db;
+            min-height: 50px;
+        }
+        .matched {
+            background: #d4efdf;
+            border-color: #2ecc71;
+        }
+        #feedback {
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        #hint {
+            font-size: 0.95em;
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        #review-box {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #3498db;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: none;
+            font-size: 1em;
+            line-height: 1.6;
+            text-align: left;
+            max-height: 40vh;
+            overflow-y: auto;
+            min-height: 100px;
+        }
+        #edit-review-box {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #3498db;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: none;
+            font-size: 1em;
+            line-height: 1.6;
+            text-align: left;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        #edit-review-textarea {
+            width: 100%;
+            height: 160px;
+            padding: 10px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        #edit-review-textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        #save-edit-review {
+            margin-top: 12px;
+            background: #2ecc71;
+            color: #fff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        #save-edit-review:hover {
+            background: #27ae60;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        #submit {
+            display: none;
+        }
+        #review {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: #7f8c8d;
+        }
+        #review:hover {
+            background: #6c7778;
+        }
+        #edit-review {
+            position: absolute;
+            bottom: 15px;
+            right: 85px;
+            background: #e67e22;
+        }
+        #edit-review:hover {
+            background: #d35400;
+        }
+        #next {
+            align-self: flex-start;
+            margin-top: 15px;
+            width: auto;
+        }
+        #progress {
+            width: 80%;
+            height: 12px;
+            background: #dfe6e9;
+            border-radius: 6px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        #progress-bar {
+            height: 100%;
+            background: #2ecc71;
+            width: 0;
+            transition: width 0.5s ease;
+        }
+        select {
+            padding: 8px 12px;
+            margin: 10px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            font-size: 1em;
+            background: #fff;
+            cursor: pointer;
+        }
+        #download-btn {
+            background: #2ecc71;
+        }
+        #download-btn:hover {
+            background: #27ae60;
+        }
     </style>
 </head>
 <body>
     <div id="header">
-        <h1>Knowledge Database App</h1>
+        <h1>Interactive Learning App</h1>
         <select id="topicSelect"></select>
+        <button onclick="window.open('progress.html', '_blank')">View Progress</button>
+        <button onclick="window.open('admin.html', '_blank')">Admin Panel</button>
+        <button id="download-btn" onclick="downloadUpdatedData()">Download Updated Data</button>
     </div>
     <div id="main-container">
         <div id="left-panel">
             <div id="slide">
                 <div id="content"></div>
                 <div id="options"></div>
+                <input id="fillAnswer" type="text" placeholder="Type your answer">
+                <div id="dragArea"></div>
                 <div id="hint"></div>
+                <button id="submit">Submit</button>
                 <div id="feedback"></div>
                 <button id="edit-review">Edit Review</button>
                 <button id="review">Review</button>
-                <div id="notes-container">
-                    <textarea id="notes" placeholder="Enter your notes here..."></textarea>
-                    <button id="save-notes">Save</button>
-                </div>
             </div>
             <button id="next">Next Slide</button>
         </div>
         <div id="right-panel">
-            <div id="review-box"></div>
+            <div id="review-box">this is review box</div>
             <div id="edit-review-box">
                 <textarea id="edit-review-textarea" placeholder="Edit review material here..."></textarea>
                 <button id="save-edit-review">Save Review</button>
+            </div>
+            <div id="notes-container">
+                <textarea id="notes" placeholder="Enter your notes, doubts, or questions here..."></textarea>
+                <button id="save-notes">Save</button>
             </div>
         </div>
     </div>
@@ -72,22 +323,24 @@
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        const supabaseUrl = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
-        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase anon key
+        const supabaseUrl = 'https://pcgalkgmlylfxputhaev.supabase.co'; // Replace with your Supabase URL
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZ2Fsa2dtbHlsZnhwdXRoYWV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4NzU5MTIsImV4cCI6MjA1ODQ1MTkxMn0.FYYDAPC0A50ZbQMUJXvEEE4kh4vRQ4eSowlEulOGLoQ'; // Replace with your Supabase anon key
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         let state = {
             currentSlide: 0,
             attempt: 0,
-            unit: [],
-            topic: 'enthalpy',
-            topics: JSON.parse(localStorage.getItem('topics')) || {},
+            matches: {},
+            progress: JSON.parse(localStorage.getItem('progress')) || {},
             notes: JSON.parse(localStorage.getItem('notes')) || {},
-            progress: JSON.parse(localStorage.getItem('progress')) || {}
+            topics: JSON.parse(localStorage.getItem('topics')) || {},
+            unit: []
         };
 
         const content = document.getElementById('content');
         const options = document.getElementById('options');
+        const fillAnswer = document.getElementById('fillAnswer');
+        const dragArea = document.getElementById('dragArea');
         const feedback = document.getElementById('feedback');
         const hint = document.getElementById('hint');
         const notes = document.getElementById('notes');
@@ -100,7 +353,9 @@
         const editReviewBox = document.getElementById('edit-review-box');
         const editReviewTextarea = document.getElementById('edit-review-textarea');
         const saveEditReviewBtn = document.getElementById('save-edit-review');
+        const submitBtn = document.getElementById('submit');
 
+        // Load topics from Supabase and localStorage
         async function loadTopics() {
             const { data, error } = await supabase.from('topics').select('name').distinct();
             if (!error) {
@@ -108,15 +363,16 @@
                     state.topics[topic.name] = state.topics[topic.name] || [];
                     const option = document.createElement('option');
                     option.value = topic.name;
-                    option.textContent = topic.name.charAt(0).toUpperCase() + topic.name.slice(1);
+                    option.textContent = topic.name.charAt(0).toUpperCase() + topic.name.slice(1).replace(/([A-Z])/g, ' $1');
                     topicSelect.appendChild(option);
                 });
+                localStorage.setItem('topics', JSON.stringify(state.topics));
             }
-            localStorage.setItem('topics', JSON.stringify(state.topics));
         }
 
+        // Load slides for selected topic
         async function loadSlides(topic) {
-            const { data, error } = await supabase.from('topics').select('*').eq('name', topic).order('id');
+            const { data, error } = await supabase.from('topics').select('*').eq('name', topic).eq('approved', true).order('id');
             if (!error) {
                 state.unit = data;
                 state.topics[topic] = data;
@@ -129,8 +385,7 @@
         }
 
         topicSelect.addEventListener('change', (e) => {
-            state.topic = e.target.value;
-            loadSlides(state.topic);
+            loadSlides(e.target.value);
         });
 
         saveNotesBtn.addEventListener('click', async () => {
@@ -163,7 +418,7 @@
         saveEditReviewBtn.addEventListener('click', async () => {
             const slide = state.unit[state.currentSlide];
             slide.explanation = editReviewTextarea.value.trim();
-            state.topics[state.topic][state.currentSlide].explanation = slide.explanation;
+            state.topics[state.unit[0].name][state.currentSlide].explanation = slide.explanation;
             localStorage.setItem('topics', JSON.stringify(state.topics));
             const { error } = await supabase.from('topics').update({
                 explanation: slide.explanation,
@@ -171,14 +426,15 @@
             }).eq('id', slide.id);
             feedback.textContent = error ? 'Error saving review!' : 'Review saved!';
             editReviewBox.style.display = 'none';
+            reviewBox.style.display = 'block';
             setTimeout(() => feedback.textContent = '', 1000);
         });
 
         nextBtn.addEventListener('click', nextSlide);
 
-        async function showSlide() {
+        function showSlide() {
             if (!state.unit.length) {
-                content.innerHTML = '<p>No slides available. Add some in Supabase or local storage!</p>';
+                content.innerHTML = '<p>No approved slides available. Add some in Supabase or Admin Panel!</p>';
                 return;
             }
             const slide = state.unit[state.currentSlide];
@@ -186,63 +442,140 @@
             feedback.textContent = '';
             hint.textContent = '';
             options.innerHTML = '';
-            const noteData = (await supabase.from('notes').select('content').eq('slide_id', slide.id).single()).data;
-            notes.value = state.notes[slide.id] || noteData?.content || '';
-            reviewBox.style.display = 'none';
-            editReviewBox.style.display = 'none';
+            fillAnswer.style.display = 'none';
+            dragArea.style.display = 'none';
+            submitBtn.style.display = 'none';
+            state.attempt = 0;
+            state.matches = {};
+            notes.value = state.notes[slide.id] || '';
 
-            content.innerHTML = `<p>${slide.prompt || (slide.type === 'concept' ? slide.text : '')}</p>`;
-            if (slide.options) {
-                slide.options.forEach((opt, i) => {
-                    const div = document.createElement('div');
-                    div.className = 'option';
-                    div.innerHTML = opt;
-                    div.onclick = () => checkMCQ(i, slide.correct, slide.id);
-                    options.appendChild(div);
-                });
+            if (slide.type === 'concept') {
+                content.innerHTML = `<ul style="list-style-type: disc; padding-left: 20px;">${slide.text.split('. ').map(s => `<li>${s.trim()}.</li>`).join('')}</ul>`;
+            } else {
+                content.innerHTML = `<p>${slide.prompt}</p>`;
+                if (slide.format === 'mcq') {
+                    slide.options.forEach((opt, i) => {
+                        const div = document.createElement('div');
+                        div.className = 'option';
+                        div.innerHTML = opt;
+                        div.onclick = () => checkMCQ(i, slide.correct, slide.id);
+                        options.appendChild(div);
+                    });
+                } else if (slide.format === 'fill') {
+                    fillAnswer.style.display = 'block';
+                    submitBtn.style.display = 'block';
+                } else if (slide.format === 'match') {
+                    dragArea.style.display = 'flex';
+                    dragArea.innerHTML = '<div id="dragA"></div><div id="dragB"></div>';
+                    const dragA = document.getElementById('dragA');
+                    const dragB = document.getElementById('dragB');
+                    slide.items.forEach((item, i) => {
+                        const aDiv = document.createElement('div');
+                        aDiv.className = 'drag-item';
+                        aDiv.draggable = true;
+                        aDiv.dataset.index = i;
+                        aDiv.innerHTML = item.a;
+                        aDiv.addEventListener('dragstart', dragStart);
+                        dragA.appendChild(aDiv);
+
+                        const bDiv = document.createElement('div');
+                        bDiv.className = 'drop-target';
+                        bDiv.dataset.index = i;
+                        bDiv.innerHTML = item.b;
+                        bDiv.addEventListener('dragover', dragOver);
+                        bDiv.addEventListener('drop', drop);
+                        dragB.appendChild(bDiv);
+                    });
+                    submitBtn.style.display = 'block';
+                }
             }
             updateProgress();
         }
 
+        function dragStart(e) { e.dataTransfer.setData('text/plain', e.target.dataset.index); }
+        function dragOver(e) { e.preventDefault(); }
+        function drop(e) {
+            e.preventDefault();
+            const aIndex = e.dataTransfer.getData('text');
+            const bIndex = e.target.dataset.index;
+            state.matches[aIndex] = bIndex;
+            e.target.classList.add('matched');
+            e.target.innerHTML = `${state.unit[state.currentSlide].items[bIndex].b} (Matched: ${state.unit[state.currentSlide].items[aIndex].a})`;
+        }
+
         async function checkMCQ(choice, correct, qId) {
             if (choice === correct) {
-                state.progress[qId] = state.progress[qId] || { attempts: 0, successes: 0, next_review: Date.now() };
-                state.progress[qId].attempts++;
-                state.progress[qId].successes++;
-                state.progress[qId].next_review = Date.now() + 24 * 60 * 60 * 1000;
-                localStorage.setItem('progress', JSON.stringify(state.progress));
-                await supabase.from('progress').upsert({
-                    slide_id: qId,
-                    attempts: state.progress[qId].attempts,
-                    successes: state.progress[qId].successes,
-                    next_review: state.progress[qId].next_review,
-                    updated_at: new Date().toISOString()
-                });
+                await updateSpacedRepetition(qId, true);
                 feedback.textContent = 'Correct!';
                 setTimeout(nextSlide, 1000);
             } else {
                 state.attempt++;
-                state.progress[qId] = state.progress[qId] || { attempts: 0, successes: 0, next_review: Date.now() };
-                state.progress[qId].attempts++;
-                localStorage.setItem('progress', JSON.stringify(state.progress));
-                await supabase.from('progress').upsert({
-                    slide_id: qId,
-                    attempts: state.progress[qId].attempts,
-                    successes: state.progress[qId].successes,
-                    next_review: state.progress[qId].next_review,
-                    updated_at: new Date().toISOString()
-                });
+                await updateSpacedRepetition(qId, false);
                 feedback.textContent = 'Try again.';
-                hint.textContent = state.attempt <= (slide.hints?.length || 0) ? slide.hints[state.attempt - 1] : 'Review the concept.';
+                hint.textContent = state.attempt <= state.unit[state.currentSlide].hints?.length ? state.unit[state.currentSlide].hints[state.attempt - 1] : 'Review the concept.';
             }
+        }
+
+        submitBtn.addEventListener('click', async () => {
+            const slide = state.unit[state.currentSlide];
+            if (slide.format === 'fill') {
+                const answer = fillAnswer.value.trim().toLowerCase();
+                if (answer === slide.answer.toLowerCase()) {
+                    await updateSpacedRepetition(slide.id, true);
+                    feedback.textContent = 'Correct!';
+                    setTimeout(nextSlide, 1000);
+                } else {
+                    state.attempt++;
+                    await updateSpacedRepetition(slide.id, false);
+                    feedback.textContent = 'Try again.';
+                    hint.textContent = state.attempt <= slide.hints?.length ? slide.hints[state.attempt - 1] : 'Review the concept.';
+                }
+            } else if (slide.format === 'match') {
+                const correctPairs = slide.correct.map((v, i) => `${i}-${v}`);
+                const userPairs = Object.entries(state.matches).map(([a, b]) => `${a}-${b}`);
+                const correct = correctPairs.length === userPairs.length && correctPairs.every(p => userPairs.includes(p));
+                if (correct) {
+                    await updateSpacedRepetition(slide.id, true);
+                    feedback.textContent = 'Correct!';
+                    setTimeout(nextSlide, 1000);
+                } else {
+                    state.attempt++;
+                    await updateSpacedRepetition(slide.id, false);
+                    feedback.textContent = 'Try again.';
+                    hint.textContent = state.attempt <= slide.hints?.length ? slide.hints[state.attempt - 1] : 'Review the concept.';
+                }
+            }
+        });
+
+        async function updateSpacedRepetition(qId, success) {
+            if (!state.progress[qId]) state.progress[qId] = { attempts: 0, successes: 0, nextReview: Date.now() };
+            state.progress[qId].attempts++;
+            if (success) {
+                state.progress[qId].successes++;
+                const intervals = [1, 3, 7];
+                const level = Math.min(state.progress[qId].successes - 1, intervals.length - 1);
+                state.progress[qId].nextReview = Date.now() + intervals[level] * 24 * 60 * 60 * 1000;
+            }
+            localStorage.setItem('progress', JSON.stringify(state.progress));
+            await supabase.from('progress').upsert({
+                slide_id: qId,
+                attempts: state.progress[qId].attempts,
+                successes: state.progress[qId].successes,
+                next_review: state.progress[qId].nextReview,
+                updated_at: new Date().toISOString()
+            });
         }
 
         function nextSlide() {
             state.currentSlide++;
-            if (state.currentSlide < state.unit.length) showSlide();
-            else {
-                content.innerHTML = '<h2>Topic Complete!</h2><p>You’ve finished this topic. Switch to another!</p>';
+            if (state.currentSlide < state.unit.length) {
+                showSlide();
+            } else {
+                content.innerHTML = '<h2>Unit Complete!</h2><p>You’ve finished this unit. Check your progress or switch topics!</p>';
                 options.innerHTML = '';
+                fillAnswer.style.display = 'none';
+                dragArea.style.display = 'none';
+                submitBtn.style.display = 'none';
                 nextBtn.style.display = 'none';
             }
         }
@@ -253,7 +586,25 @@
             document.getElementById('progress-bar').style.width = `${(state.currentSlide / state.unit.length) * 100}%`;
         }
 
-        loadTopics().then(() => loadSlides(state.topic));
+        function downloadUpdatedData() {
+            const dataStr = `let topics = ${JSON.stringify(state.topics, null, 2)};\nlocalStorage.setItem('topics', JSON.stringify(topics));`;
+            const blob = new Blob([dataStr], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        async function init() {
+            await loadTopics();
+            await loadSlides('enthalpy'); // Default topic
+        }
+        init();
     </script>
 </body>
 </html>
