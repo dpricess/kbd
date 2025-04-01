@@ -1,0 +1,16 @@
+{
+    "name": "Knowledge Database Dev Environment",
+    "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18",
+    "customizations": {
+        "vscode": {
+            "extensions": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+        }
+    },
+    "portsAttributes": {
+        "3000": {
+            "label": "App",
+            "onAutoForward": "openPreview"
+        }
+    },
+    "postCreateCommand": "npm install -g live-server"
+}
