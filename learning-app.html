@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Knowledge Database App</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #header { text-align: center; margin-bottom: 20px; }
+        #main-container { display: flex; flex: 1; overflow: hidden; }
+        #left-panel { width: 50%; display: flex; flex-direction: column; margin-right: 20px; }
+        #slide { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex: 1; position: relative; background: linear-gradient(to bottom right, #ffffff, #e6f0fa); overflow-y: auto; }
+        #right-panel { width: 50%; display: flex; flex-direction: column; gap: 20px; }
+        #content { font-size: 1.2em; line-height: 1.6; text-align: left; padding: 10px; }
+        #notes-container { position: absolute; bottom: 20px; right: 20px; width: 250px; text-align: left; }
+        #notes { width: 100%; height: 80px; padding: 8px; font-size: 1em; border: 1px solid #ccc; border-radius: 5px; }
+        #save-notes { padding: 6px 12px; margin-top: 5px; background: #4caf50; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        #save-notes:hover { background: #388e3c; }
+        #options { margin: 10px 0; width: 100%; box-sizing: border-box; }
+        .option { padding: 8px; margin: 5px 0; background: #e3f2fd; border: 1px solid #2196f3; border-radius: 5px; cursor: pointer; }
+        .option:hover { background: #bbdefb; }
+        #feedback { font-size: 1.2em; margin: 10px 0; color: #d32f2f; }
+        #hint { font-size: 0.9em; color: #666; margin: 5px 0; }
+        #review-box { width: 100%; background: #fff; border: 1px solid #2196f3; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; font-size: 1em; line-height: 1.5; text-align: left; max-height: 40vh; overflow-y: auto; min-height: 100px; }
+        #edit-review-box { width: 100%; background: #fff; border: 1px solid #2196f3; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; font-size: 1em; line-height: 1.5; text-align: left; max-height: 40vh; overflow-y: auto; }
+        #edit-review-textarea { width: 100%; height: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; resize: vertical; }
+        #save-edit-review { margin-top: 10px; background: #4caf50; color: #fff; }
+        #save-edit-review:hover { background: #388e3c; }
+        button { padding: 8px 16px; margin: 5px; background: #2196f3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #1976d2; }
+        #review { position: absolute; bottom: 10px; right: 10px; background: #757575; color: #fff; }
+        #review:hover { background: #616161; }
+        #edit-review { position: absolute; bottom: 10px; right: 80px; background: #ff9800; color: #fff; }
+        #edit-review:hover { background: #f57c00; }
+        #next { align-self: flex-start; margin-top: 10px; width: auto; }
+        #progress { width: 80%; height: 10px; background: #ddd; border-radius: 5px; margin: 15px auto; }
+        #progress-bar { height: 100%; background: #4caf50; width: 0; transition: width 0.5s; }
+        select { padding: 5px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>Knowledge Database App</h1>
+        <select id="topicSelect"></select>
+    </div>
+    <div id="main-container">
+        <div id="left-panel">
+            <div id="slide">
+                <div id="content"></div>
+                <div id="options"></div>
+                <div id="hint"></div>
+                <div id="feedback"></div>
+                <button id="edit-review">Edit Review</button>
+                <button id="review">Review</button>
+                <div id="notes-container">
+                    <textarea id="notes" placeholder="Enter your notes here..."></textarea>
+                    <button id="save-notes">Save</button>
+                </div>
+            </div>
+            <button id="next">Next Slide</button>
+        </div>
+        <div id="right-panel">
+            <div id="review-box"></div>
+            <div id="edit-review-box">
+                <textarea id="edit-review-textarea" placeholder="Edit review material here..."></textarea>
+                <button id="save-edit-review">Save Review</button>
+            </div>
+        </div>
+    </div>
+    <div id="progress"><div id="progress-bar"></div></div>
+    <p>Completed: <span id="completed">0</span> / <span id="total">0</span></p>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase anon key
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let state = {
+            currentSlide: 0,
+            attempt: 0,
+            unit: [],
+            topic: 'enthalpy',
+            topics: JSON.parse(localStorage.getItem('topics')) || {},
+            notes: JSON.parse(localStorage.getItem('notes')) || {},
+            progress: JSON.parse(localStorage.getItem('progress')) || {}
+        };
+
+        const content = document.getElementById('content');
+        const options = document.getElementById('options');
+        const feedback = document.getElementById('feedback');
+        const hint = document.getElementById('hint');
+        const notes = document.getElementById('notes');
+        const saveNotesBtn = document.getElementById('save-notes');
+        const nextBtn = document.getElementById('next');
+        const topicSelect = document.getElementById('topicSelect');
+        const reviewBtn = document.getElementById('review');
+        const reviewBox = document.getElementById('review-box');
+        const editReviewBtn = document.getElementById('edit-review');
+        const editReviewBox = document.getElementById('edit-review-box');
+        const editReviewTextarea = document.getElementById('edit-review-textarea');
+        const saveEditReviewBtn = document.getElementById('save-edit-review');
+
+        async function loadTopics() {
+            const { data, error } = await supabase.from('topics').select('name').distinct();
+            if (!error) {
+                data.forEach(topic => {
+                    state.topics[topic.name] = state.topics[topic.name] || [];
+                    const option = document.createElement('option');
+                    option.value = topic.name;
+                    option.textContent = topic.name.charAt(0).toUpperCase() + topic.name.slice(1);
+                    topicSelect.appendChild(option);
+                });
+            }
+            localStorage.setItem('topics', JSON.stringify(state.topics));
+        }
+
+        async function loadSlides(topic) {
+            const { data, error } = await supabase.from('topics').select('*').eq('name', topic).order('id');
+            if (!error) {
+                state.unit = data;
+                state.topics[topic] = data;
+                localStorage.setItem('topics', JSON.stringify(state.topics));
+            } else {
+                state.unit = state.topics[topic] || [];
+            }
+            state.currentSlide = 0;
+            showSlide();
+        }
+
+        topicSelect.addEventListener('change', (e) => {
+            state.topic = e.target.value;
+            loadSlides(state.topic);
+        });
+
+        saveNotesBtn.addEventListener('click', async () => {
+            const slide = state.unit[state.currentSlide];
+            state.notes[slide.id] = notes.value.trim();
+            localStorage.setItem('notes', JSON.stringify(state.notes));
+            const { error } = await supabase.from('notes').upsert({
+                slide_id: slide.id,
+                content: notes.value.trim(),
+                updated_at: new Date().toISOString()
+            });
+            feedback.textContent = error ? 'Error saving notes!' : 'Notes saved!';
+            setTimeout(() => feedback.textContent = '', 1000);
+        });
+
+        reviewBtn.addEventListener('click', () => {
+            const slide = state.unit[state.currentSlide];
+            reviewBox.innerHTML = slide.explanation || '<p>No review material available yet.</p>';
+            reviewBox.style.display = reviewBox.style.display === 'none' ? 'block' : 'none';
+            editReviewBox.style.display = 'none';
+        });
+
+        editReviewBtn.addEventListener('click', () => {
+            const slide = state.unit[state.currentSlide];
+            editReviewTextarea.value = slide.explanation || '';
+            editReviewBox.style.display = editReviewBox.style.display === 'none' ? 'block' : 'none';
+            reviewBox.style.display = 'none';
+        });
+
+        saveEditReviewBtn.addEventListener('click', async () => {
+            const slide = state.unit[state.currentSlide];
+            slide.explanation = editReviewTextarea.value.trim();
+            state.topics[state.topic][state.currentSlide].explanation = slide.explanation;
+            localStorage.setItem('topics', JSON.stringify(state.topics));
+            const { error } = await supabase.from('topics').update({
+                explanation: slide.explanation,
+                updated_at: new Date().toISOString()
+            }).eq('id', slide.id);
+            feedback.textContent = error ? 'Error saving review!' : 'Review saved!';
+            editReviewBox.style.display = 'none';
+            setTimeout(() => feedback.textContent = '', 1000);
+        });
+
+        nextBtn.addEventListener('click', nextSlide);
+
+        async function showSlide() {
+            if (!state.unit.length) {
+                content.innerHTML = '<p>No slides available. Add some in Supabase or local storage!</p>';
+                return;
+            }
+            const slide = state.unit[state.currentSlide];
+            content.style.display = 'block';
+            feedback.textContent = '';
+            hint.textContent = '';
+            options.innerHTML = '';
+            const noteData = (await supabase.from('notes').select('content').eq('slide_id', slide.id).single()).data;
+            notes.value = state.notes[slide.id] || noteData?.content || '';
+            reviewBox.style.display = 'none';
+            editReviewBox.style.display = 'none';
+
+            content.innerHTML = `<p>${slide.prompt || (slide.type === 'concept' ? slide.text : '')}</p>`;
+            if (slide.options) {
+                slide.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'option';
+                    div.innerHTML = opt;
+                    div.onclick = () => checkMCQ(i, slide.correct, slide.id);
+                    options.appendChild(div);
+                });
+            }
+            updateProgress();
+        }
+
+        async function checkMCQ(choice, correct, qId) {
+            if (choice === correct) {
+                state.progress[qId] = state.progress[qId] || { attempts: 0, successes: 0, next_review: Date.now() };
+                state.progress[qId].attempts++;
+                state.progress[qId].successes++;
+                state.progress[qId].next_review = Date.now() + 24 * 60 * 60 * 1000;
+                localStorage.setItem('progress', JSON.stringify(state.progress));
+                await supabase.from('progress').upsert({
+                    slide_id: qId,
+                    attempts: state.progress[qId].attempts,
+                    successes: state.progress[qId].successes,
+                    next_review: state.progress[qId].next_review,
+                    updated_at: new Date().toISOString()
+                });
+                feedback.textContent = 'Correct!';
+                setTimeout(nextSlide, 1000);
+            } else {
+                state.attempt++;
+                state.progress[qId] = state.progress[qId] || { attempts: 0, successes: 0, next_review: Date.now() };
+                state.progress[qId].attempts++;
+                localStorage.setItem('progress', JSON.stringify(state.progress));
+                await supabase.from('progress').upsert({
+                    slide_id: qId,
+                    attempts: state.progress[qId].attempts,
+                    successes: state.progress[qId].successes,
+                    next_review: state.progress[qId].next_review,
+                    updated_at: new Date().toISOString()
+                });
+                feedback.textContent = 'Try again.';
+                hint.textContent = state.attempt <= (slide.hints?.length || 0) ? slide.hints[state.attempt - 1] : 'Review the concept.';
+            }
+        }
+
+        function nextSlide() {
+            state.currentSlide++;
+            if (state.currentSlide < state.unit.length) showSlide();
+            else {
+                content.innerHTML = '<h2>Topic Complete!</h2><p>You’ve finished this topic. Switch to another!</p>';
+                options.innerHTML = '';
+                nextBtn.style.display = 'none';
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('completed').textContent = state.currentSlide;
+            document.getElementById('total').textContent = state.unit.length;
+            document.getElementById('progress-bar').style.width = `${(state.currentSlide / state.unit.length) * 100}%`;
+        }
+
+        loadTopics().then(() => loadSlides(state.topic));
+    </script>
+</body>
+</html>
