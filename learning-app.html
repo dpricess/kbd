@@ -68,10 +68,13 @@
             font-weight: 600;
         }
         #notes-container {
+            position: absolute; /* Changed from default flex positioning */
             padding: 15px;
             background: #ffffff;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            width: calc(100% - 40px); /* Full width minus padding */
+
         }
         #notes {
             width: 100%;
@@ -82,7 +85,8 @@
             border-radius: 8px;
             resize: vertical;
             transition: border-color 0.3s ease;
-        }
+        } 
+
         #notes:focus {
             border-color: #3498db;
             outline: none;
@@ -327,6 +331,7 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZ2Fsa2dtbHlsZnhwdXRoYWV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4NzU5MTIsImV4cCI6MjA1ODQ1MTkxMn0.FYYDAPC0A50ZbQMUJXvEEE4kh4vRQ4eSowlEulOGLoQ'; // Replace with your Supabase anon key
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+     console.log('Supabase initialized:', supabase);
         let state = {
             currentSlide: 0,
             attempt: 0,
@@ -357,22 +362,25 @@
 
         // Load topics from Supabase and localStorage
         async function loadTopics() {
-            const { data, error } = await supabase.from('topics').select('name').distinct();
-            if (!error) {
-                data.forEach(topic => {
-                    state.topics[topic.name] = state.topics[topic.name] || [];
-                    const option = document.createElement('option');
-                    option.value = topic.name;
-                    option.textContent = topic.name.charAt(0).toUpperCase() + topic.name.slice(1).replace(/([A-Z])/g, ' $1');
-                    topicSelect.appendChild(option);
-                });
-                localStorage.setItem('topics', JSON.stringify(state.topics));
-            }
-            else{
-                console.log("error");
-            }
-            console.log("loading");
-        }
+    console.log('Fetching topics from Supabase...');
+    try {
+        const { data, error } = await supabase.from('topics').select('name');
+        console.log('Topics response:', { data, error });
+        if (error) throw error;
+        // Remove duplicates client-side
+        const uniqueNames = [...new Set(data.map(item => item.name))];
+        uniqueNames.forEach(name => {
+            state.topics[name] = state.topics[name] || [];
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1');
+            topicSelect.appendChild(option);
+        });
+        localStorage.setItem('topics', JSON.stringify(state.topics));
+    } catch (err) {
+        console.error('Error fetching topics:', err.message);
+    }
+}
 
         // Load slides for selected topic
         async function loadSlides(topic) {
