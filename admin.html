@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="stylesadmin.css">
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <select id="topicSelect"></select>
+    <button id="generate-btn">Generate 10 Slides</button>
+    <button id="download-btn">Download Updated data.js</button>
+    <table id="slideTable">
+        <tr><th>ID</th><th>Type</th><th>Content</th><th>Complexity</th><th>Explainer</th><th>Explanation</th><th>Generated</th><th>Approve</th><th>Edit</th></tr>
+    </table>
+    <div id="edit-form">
+        <h2>Edit Slide</h2>
+        <input type="hidden" id="edit-id">
+        <input type="hidden" id="edit-topic">
+        <label>Type: <select id="edit-type">
+            <option value="display">Display Only</option>
+            <option value="fill">Fill in the Blanks</option>
+            <option value="match">Match the Following</option>
+            <option value="reorder">Reorder</option>
+            <option value="mcq">Multiple Choice</option>
+            <option value="truefalse">True/False</option>
+            <option value="shortanswer">Short Answer</option>
+        </select></label>
+        <label>Prompt/Text: <textarea id="edit-prompt"></textarea></label>
+        <label>Options (MCQ only, comma-separated): <input id="edit-options"></label>
+        <label>Answer (Fill/Short Answer): <input id="edit-answer"></label>
+        <label>Correct (MCQ: index, Match/Reorder: indices, True/False: true/false): <input id="edit-correct"></label>
+        <label>Items (Match: a1,b1|a2,b2, Reorder: item1|item2): <textarea id="edit-items"></textarea></label>
+        <label>Explanation: <textarea id="edit-explanation"></textarea></label>
+        <button id="save-edit-btn">Save</button>
+        <button id="cancel-edit-btn">Cancel</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { fetchTopics, updateTopic } from './db.js';
+
+        const topicSelect = document.getElementById('topicSelect');
+        const slideTable = document.getElementById('slideTable');
+        const generateBtn = document.getElementById('generate-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const saveEditBtn = document.getElementById('save-edit-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        let topics = {};
+
+        async function init() {
+            topics = await fetchTopics();
+            if (Object.keys(topics).length === 0) topics = {};
+            populateTopicSelect();
+            displaySlides();
+        }
+
+        function populateTopicSelect() {
+            topicSelect.innerHTML = '';
+            Object.keys(topics).forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic.charAt(0).toUpperCase() + topic.slice(1).replace(/([A-Z])/g, ' $1');
+                topicSelect.appendChild(option);
+            });
+            if (Object.keys(topics).length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No topics available';
+                topicSelect.appendChild(option);
+            }
+        }
+
+        function displaySlides() {
+            slideTable.innerHTML = '<tr><th>ID</th><th>Type</th><th>Content</th><th>Complexity</th><th>Explainer</th><th>Explanation</th><th>Generated</th><th>Approve</th><th>Edit</th></tr>';
+            const currentTopic = topicSelect.value;
+            if (!currentTopic || !topics[currentTopic]) return;
+            topics[currentTopic].forEach(slide => {
+                const row = document.createElement('tr');
+                const truncatedExplanation = slide.explanation ? slide.explanation.replace(/<[^>]+>/g, '').substring(0, 50) + (slide.explanation.length > 50 ? '...' : '') : 'No explanation';
+                row.innerHTML = `
+                    <td>${slide.id}</td>
+                    <td>${slide.type}</td>
+                    <td>${slide.prompt || slide.text || 'No content'}</td>
+                    <td>${slide.complexity || 1}</td>
+                    <td class="explainer">${slide.explainer || 'No explainer'}</td>
+                    <td class="explanation">${truncatedExplanation}</td>
+                    <td>${slide.generated ? 'Yes' : 'No'}</td>
+                    <td>${slide.approved ? 'Approved' : `<button class="approve-btn" data-topic="${currentTopic}" data-id="${slide.id}">Approve</button>`}</td>
+                    <td><button class="edit-btn" data-topic="${currentTopic}" data-id="${slide.id}">Edit</button></td>
+                `;
+                slideTable.appendChild(row);
+            });
+
+            // Attach event listeners to dynamically created buttons
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.addEventListener('click', () => approveSlide(btn.dataset.topic, btn.dataset.id));
+            });
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editSlide(btn.dataset.topic, btn.dataset.id));
+            });
+        }
+
+        async function generateSlides(count) {
+            const currentTopic = topicSelect.value || `topic-${Date.now()}`;
+            if (!topics[currentTopic]) topics[currentTopic] = [];
+            const newSlides = [];
+            const types = ['display', 'fill', 'match', 'reorder', 'mcq', 'truefalse', 'shortanswer'];
+            for (let i = 0; i < count; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const complexity = Math.floor(Math.random() * 3) + 1;
+                const id = `${currentTopic}-g${Date.now()}-${i}`;
+                let slide = { id, complexity, generated: true, approved: false, type };
+
+                if (type === 'display') {
+                    slide.text = `This is a display slide for ${currentTopic} #${i + 1}.`;
+                    slide.explainer = 'Review this content.';
+                    slide.explanation = `<p>Explanation for ${currentTopic} display #${i + 1}.</p>`;
+                } else if (type === 'fill') {
+                    slide.prompt = `The capital of ${currentTopic} is ___.`;
+                    slide.answer = 'Unknown';
+                    slide.explainer = 'Fill in the blank.';
+                    slide.explanation = `<p>Explanation for fill-in-the-blank #${i + 1}.</p>`;
+                } else if (type === 'match') {
+                    slide.prompt = `Match terms for ${currentTopic}.`;
+                    slide.items = [{ a: 'A', b: '1' }, { a: 'B', b: '2' }];
+                    slide.correct = [0, 1];
+                    slide.explainer = 'Match pairs.';
+                    slide.explanation = `<p>Explanation for matching #${i + 1}.</p>`;
+                } else if (type === 'reorder') {
+                    slide.prompt = `Order these steps for ${currentTopic}.`;
+                    slide.items = ['Step 1', 'Step 2', 'Step 3'];
+                    slide.correct = [0, 1, 2];
+                    slide.explainer = 'Put in order.';
+                    slide.explanation = `<p>Explanation for reordering #${i + 1}.</p>`;
+                } else if (type === 'mcq') {
+                    slide.prompt = `What is ${currentTopic} #${i + 1}?`;
+                    slide.options = ['A', 'B', 'C', 'D'];
+                    slide.correct = 0;
+                    slide.explainer = 'Choose the correct answer.';
+                    slide.explanation = `<p>Explanation for MCQ #${i + 1}.</p>`;
+                } else if (type === 'truefalse') {
+                    slide.prompt = `${currentTopic} is true #${i + 1}.`;
+                    slide.correct = true;
+                    slide.explainer = 'True or false?';
+                    slide.explanation = `<p>Explanation for true/false #${i + 1}.</p>`;
+                } else if (type === 'shortanswer') {
+                    slide.prompt = `Explain ${currentTopic} #${i + 1}.`;
+                    slide.answer = 'Sample answer';
+                    slide.explainer = 'Write a short response.';
+                    slide.explanation = `<p>Explanation for short answer #${i + 1}.</p>`;
+                }
+
+                newSlides.push(slide);
+            }
+            topics[currentTopic].push(...newSlides);
+            await updateTopic(currentTopic, topics[currentTopic]);
+            localStorage.setItem('topics', JSON.stringify(topics));
+            populateTopicSelect();
+            displaySlides();
+        }
+
+        async function approveSlide(topic, id) {
+            const slide = topics[topic].find(s => s.id === id);
+            slide.approved = true;
+            await updateTopic(topic, topics[topic]);
+            localStorage.setItem('topics', JSON.stringify(topics));
+            displaySlides();
+        }
+
+        function editSlide(topic, id) {
+            const slide = topics[topic].find(s => s.id === id);
+            if (!slide) return;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-topic').value = topic;
+            document.getElementById('edit-type').value = slide.type;
+            document.getElementById('edit-prompt').value = slide.prompt || slide.text || '';
+            document.getElementById('edit-options').value = slide.options ? slide.options.join(', ') : '';
+            document.getElementById('edit-answer').value = slide.answer || '';
+            document.getElementById('edit-correct').value = slide.correct !== null && slide.correct !== undefined ? slide.correct.toString() : '';
+            document.getElementById('edit-items').value = slide.items ? (slide.type === 'match' ? slide.items.map(item => `${item.a},${item.b}`).join('|') : slide.items.join('|')) : '';
+            document.getElementById('edit-explanation').value = slide.explanation || '';
+            document.getElementById('edit-form').style.display = 'block';
+        }
+
+        async function saveEdit() {
+            const id = document.getElementById('edit-id').value;
+            const topic = document.getElementById('edit-topic').value;
+            const slide = topics[topic].find(s => s.id === id);
+            if (!slide) return;
+
+            slide.type = document.getElementById('edit-type').value;
+            slide.prompt = document.getElementById('edit-prompt').value || null;
+            slide.text = slide.type === 'display' ? slide.prompt : null;
+            slide.explanation = document.getElementById('edit-explanation').value || null;
+
+            if (slide.type === 'mcq') {
+                slide.options = document.getElementById('edit-options').value.split(',').map(o => o.trim());
+                slide.correct = parseInt(document.getElementById('edit-correct').value, 10) || 0;
+                slide.answer = null;
+                slide.items = null;
+            } else if (slide.type === 'fill') {
+                slide.answer = document.getElementById('edit-answer').value || null;
+                slide.options = null;
+                slide.correct = null;
+                slide.items = null;
+            } else if (slide.type === 'match') {
+                slide.items = document.getElementById('edit-items').value.split('|').map(pair => {
+                    const [a, b] = pair.split(',').map(s => s.trim());
+                    return { a, b };
+                });
+                slide.correct = document.getElementById('edit-correct').value.split(',').map(i => parseInt(i.trim(), 10));
+                slide.options = null;
+                slide.answer = null;
+            } else if (slide.type === 'reorder') {
+                slide.items = document.getElementById('edit-items').value.split('|').map(i => i.trim());
+                slide.correct = document.getElementById('edit-correct').value.split(',').map(i => parseInt(i.trim(), 10));
+                slide.options = null;
+                slide.answer = null;
+            } else if (slide.type === 'truefalse') {
+                slide.correct = document.getElementById('edit-correct').value.toLowerCase() === 'true';
+                slide.options = null;
+                slide.answer = null;
+                slide.items = null;
+            } else if (slide.type === 'shortanswer') {
+                slide.answer = document.getElementById('edit-answer').value || null;
+                slide.options = null;
+                slide.correct = null;
+                slide.items = null;
+            } else if (slide.type === 'display') {
+                slide.options = null;
+                slide.answer = null;
+                slide.correct = null;
+                slide.items = null;
+            }
+
+            await updateTopic(topic, topics[topic]);
+            localStorage.setItem('topics', JSON.stringify(topics));
+            document.getElementById('edit-form').style.display = 'none';
+            displaySlides();
+        }
+
+        function downloadUpdatedData() {
+            const dataStr = `let topics = ${JSON.stringify(topics, null, 2)};\nlocalStorage.setItem('topics', JSON.stringify(topics));`;
+            const blob = new Blob([dataStr], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', () => generateSlides(10));
+        downloadBtn.addEventListener('click', downloadUpdatedData);
+        saveEditBtn.addEventListener('click', saveEdit);
+        cancelEditBtn.addEventListener('click', () => document.getElementById('edit-form').style.display = 'none');
+        topicSelect.addEventListener('change', displaySlides);
+
+        init();
+    </script>
+</body>
+</html>

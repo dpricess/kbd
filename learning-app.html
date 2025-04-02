@@ -2,620 +2,435 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Interactive Learning App</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #eef2f7;
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            color: #333;
-        }
-        #header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 15px;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        #header h1 {
-            margin: 0;
-            font-size: 2em;
-            color: #2c3e50;
-        }
-        #main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            gap: 20px;
-        }
-        #left-panel {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-        }
-        #slide {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            flex: 1;
-            position: relative;
-            overflow-y: auto;
-            transition: transform 0.2s ease;
-        }
-        #slide:hover {
-            transform: translateY(-2px);
-        }
-        #right-panel {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        #content {
-            font-size: 1.2em;
-            line-height: 1.7;
-            text-align: left;
-            padding: 10px;
-        }
-        .vocab {
-            color: #3498db;
-            font-weight: 600;
-        }
-        #notes-container {
-            position: absolute; /* Changed from default flex positioning */
-            padding: 15px;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            width: calc(100% - 40px); /* Full width minus padding */
-
-        }
-        #notes {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            font-size: 1em;
-            border: 1px solid #dfe6e9;
-            border-radius: 8px;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-        } 
-
-        #notes:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        #save-notes {
-            padding: 8px 16px;
-            margin-top: 10px;
-            background: #2ecc71;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        #save-notes:hover {
-            background: #27ae60;
-        }
-        #options, #fillAnswer, #dragArea {
-            margin: 15px 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .option, .drag-item, .drop-target {
-            padding: 12px;
-            margin: 8px 0;
-            background: #f5f9fd;
-            border: 1px solid #3498db;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
-        }
-        .option:hover, .drag-item:hover {
-            background: #e9f1fa;
-            transform: translateY(-1px);
-        }
-        #fillAnswer {
-            padding: 10px;
-            font-size: 1em;
-            border: 1px solid #3498db;
-            border-radius: 8px;
-            display: none;
-            width: 100%;
-        }
-        #dragArea {
-            display: none;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        #dragA, #dragB {
-            width: 48%;
-            min-height: 120px;
-        }
-        .drop-target {
-            background: #fff;
-            border: 2px dashed #3498db;
-            min-height: 50px;
-        }
-        .matched {
-            background: #d4efdf;
-            border-color: #2ecc71;
-        }
-        #feedback {
-            font-size: 1.2em;
-            margin: 10px 0;
-            color: #e74c3c;
-            font-weight: 500;
-        }
-        #hint {
-            font-size: 0.95em;
-            color: #7f8c8d;
-            margin: 5px 0;
-        }
-        #review-box {
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid #3498db;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: none;
-            font-size: 1em;
-            line-height: 1.6;
-            text-align: left;
-            max-height: 40vh;
-            overflow-y: auto;
-            min-height: 100px;
-        }
-        #edit-review-box {
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid #3498db;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: none;
-            font-size: 1em;
-            line-height: 1.6;
-            text-align: left;
-            max-height: 40vh;
-            overflow-y: auto;
-        }
-        #edit-review-textarea {
-            width: 100%;
-            height: 160px;
-            padding: 10px;
-            border: 1px solid #dfe6e9;
-            border-radius: 8px;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-        }
-        #edit-review-textarea:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        #save-edit-review {
-            margin-top: 12px;
-            background: #2ecc71;
-            color: #fff;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        #save-edit-review:hover {
-            background: #27ae60;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            background: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
-        }
-        button:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-        #submit {
-            display: none;
-        }
-        #review {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: #7f8c8d;
-        }
-        #review:hover {
-            background: #6c7778;
-        }
-        #edit-review {
-            position: absolute;
-            bottom: 15px;
-            right: 85px;
-            background: #e67e22;
-        }
-        #edit-review:hover {
-            background: #d35400;
-        }
-        #next {
-            align-self: flex-start;
-            margin-top: 15px;
-            width: auto;
-        }
-        #progress {
-            width: 80%;
-            height: 12px;
-            background: #dfe6e9;
-            border-radius: 6px;
-            margin: 20px auto;
-            overflow: hidden;
-        }
-        #progress-bar {
-            height: 100%;
-            background: #2ecc71;
-            width: 0;
-            transition: width 0.5s ease;
-        }
-        select {
-            padding: 8px 12px;
-            margin: 10px;
-            border: 1px solid #dfe6e9;
-            border-radius: 8px;
-            font-size: 1em;
-            background: #fff;
-            cursor: pointer;
-        }
-        #download-btn {
-            background: #2ecc71;
-        }
-        #download-btn:hover {
-            background: #27ae60;
-        }
-    </style>
+    <title>Learn - Interactive Slides</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="header">
-        <h1>Interactive Learning App</h1>
-        <select id="topicSelect"></select>
-        <button onclick="window.open('progress.html', '_blank')">View Progress</button>
-        <button onclick="window.open('admin.html', '_blank')">Admin Panel</button>
-        <button id="download-btn" onclick="downloadUpdatedData()">Download Updated Data</button>
-    </div>
-    <div id="main-container">
-        <div id="left-panel">
-            <div id="slide">
-                <div id="content"></div>
-                <div id="options"></div>
-                <input id="fillAnswer" type="text" placeholder="Type your answer">
-                <div id="dragArea"></div>
-                <div id="hint"></div>
-                <button id="submit">Submit</button>
-                <div id="feedback"></div>
-                <button id="edit-review">Edit Review</button>
-                <button id="review">Review</button>
-            </div>
-            <button id="next">Next Slide</button>
+    <div class="container">
+        <div class="main">
+            <h1>Learn</h1>
+            <div id="slideContainer" class="slide-container"></div>
         </div>
-        <div id="right-panel">
-            <div id="review-box">this is review box</div>
-            <div id="edit-review-box">
-                <textarea id="edit-review-textarea" placeholder="Edit review material here..."></textarea>
-                <button id="save-edit-review">Save Review</button>
+        <div class="sidebar">
+            <button id="toggleReviewBtn" class="btn btn-secondary">Review</button>
+            <div id="reviewArea" class="panel review-panel" style="display: none;">
+                <h3>Review</h3>
+                <div id="reviewContent" class="panel-content" contenteditable="false"></div>
+                <button id="editReviewBtn" class="btn btn-secondary">Edit Review</button>
             </div>
-            <div id="notes-container">
-                <textarea id="notes" placeholder="Enter your notes, doubts, or questions here..."></textarea>
-                <button id="save-notes">Save</button>
+            <div id="notesArea" class="panel notes-panel">
+                <h3>Notes</h3>
+                <textarea id="notesInput" class="panel-content" placeholder="Type your notes here..."></textarea>
+                <button id="saveNotesBtn" class="btn btn-primary">Save Notes</button>
             </div>
         </div>
     </div>
-    <div id="progress"><div id="progress-bar"></div></div>
-    <p>Completed: <span id="completed">0</span> / <span id="total">0</span></p>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        import { fetchTopics } from './db.js';
 
-        const supabaseUrl = 'https://pcgalkgmlylfxputhaev.supabase.co'; // Replace with your Supabase URL
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZ2Fsa2dtbHlsZnhwdXRoYWV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4NzU5MTIsImV4cCI6MjA1ODQ1MTkxMn0.FYYDAPC0A50ZbQMUJXvEEE4kh4vRQ4eSowlEulOGLoQ'; // Replace with your Supabase anon key
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const topicSelect = document.createElement('select');
+        topicSelect.id = 'topicSelect';
+        const slideContainer = document.getElementById('slideContainer');
+        const toggleReviewBtn = document.getElementById('toggleReviewBtn');
+        const editReviewBtn = document.getElementById('editReviewBtn');
+        const reviewArea = document.getElementById('reviewArea');
+        const reviewContent = document.getElementById('reviewContent');
+        const notesInput = document.getElementById('notesInput');
+        const saveNotesBtn = document.getElementById('saveNotesBtn');
+        let topics = {};
+        let currentSlideIndex = 0;
+        let reviewData = {};
 
-     console.log('Supabase initialized:', supabase);
-        let state = {
-            currentSlide: 0,
-            attempt: 0,
-            matches: {},
-            progress: JSON.parse(localStorage.getItem('progress')) || {},
-            notes: JSON.parse(localStorage.getItem('notes')) || {},
-            topics: JSON.parse(localStorage.getItem('topics')) || {},
-            unit: []
-        };
-
-        const content = document.getElementById('content');
-        const options = document.getElementById('options');
-        const fillAnswer = document.getElementById('fillAnswer');
-        const dragArea = document.getElementById('dragArea');
-        const feedback = document.getElementById('feedback');
-        const hint = document.getElementById('hint');
-        const notes = document.getElementById('notes');
-        const saveNotesBtn = document.getElementById('save-notes');
-        const nextBtn = document.getElementById('next');
-        const topicSelect = document.getElementById('topicSelect');
-        const reviewBtn = document.getElementById('review');
-        const reviewBox = document.getElementById('review-box');
-        const editReviewBtn = document.getElementById('edit-review');
-        const editReviewBox = document.getElementById('edit-review-box');
-        const editReviewTextarea = document.getElementById('edit-review-textarea');
-        const saveEditReviewBtn = document.getElementById('save-edit-review');
-        const submitBtn = document.getElementById('submit');
-
-        // Load topics from Supabase and localStorage
-        async function loadTopics() {
-    console.log('Fetching topics from Supabase...');
-    try {
-        const { data, error } = await supabase.from('topics').select('name');
-        console.log('Topics response:', { data, error });
-        if (error) throw error;
-        // Remove duplicates client-side
-        const uniqueNames = [...new Set(data.map(item => item.name))];
-        uniqueNames.forEach(name => {
-            state.topics[name] = state.topics[name] || [];
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1');
-            topicSelect.appendChild(option);
-        });
-        localStorage.setItem('topics', JSON.stringify(state.topics));
-    } catch (err) {
-        console.error('Error fetching topics:', err.message);
-    }
-}
-
-        // Load slides for selected topic
-        async function loadSlides(topic) {
-            const { data, error } = await supabase.from('topics').select('*').eq('name', topic).eq('approved', true).order('id');
-            if (!error) {
-                state.unit = data;
-                state.topics[topic] = data;
-                localStorage.setItem('topics', JSON.stringify(state.topics));
-            } else {
-                state.unit = state.topics[topic] || [];
+        async function init() {
+            topics = await fetchTopics();
+            console.log('Fetched topics:', topics);
+            if (Object.keys(topics).length === 0) {
+                topics = JSON.parse(localStorage.getItem('topics')) || {};
+                console.log('Using cached topics from localStorage:', topics);
             }
-            state.currentSlide = 0;
-            showSlide();
+            reviewData = JSON.parse(localStorage.getItem('reviewData')) || {};
+            populateTopicSelect();
+            displaySlide();
+            loadNotes();
         }
 
-        topicSelect.addEventListener('change', (e) => {
-            loadSlides(e.target.value);
-        });
-
-        saveNotesBtn.addEventListener('click', async () => {
-            const slide = state.unit[state.currentSlide];
-            state.notes[slide.id] = notes.value.trim();
-            localStorage.setItem('notes', JSON.stringify(state.notes));
-            const { error } = await supabase.from('notes').upsert({
-                slide_id: slide.id,
-                content: notes.value.trim(),
-                updated_at: new Date().toISOString()
+        function populateTopicSelect() {
+            topicSelect.innerHTML = '';
+            Object.keys(topics).forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic.charAt(0).toUpperCase() + topic.slice(1).replace(/([A-Z])/g, ' $1');
+                topicSelect.appendChild(option);
             });
-            feedback.textContent = error ? 'Error saving notes!' : 'Notes saved!';
-            setTimeout(() => feedback.textContent = '', 1000);
-        });
+            if (Object.keys(topics).length === 0) {
+                topicSelect.innerHTML = '<option value="">No topics available</option>';
+            }
+        }
 
-        reviewBtn.addEventListener('click', () => {
-            const slide = state.unit[state.currentSlide];
-            reviewBox.innerHTML = slide.explanation || '<p>No review material available yet.</p>';
-            reviewBox.style.display = reviewBox.style.display === 'none' ? 'block' : 'none';
-            editReviewBox.style.display = 'none';
-        });
-
-        editReviewBtn.addEventListener('click', () => {
-            const slide = state.unit[state.currentSlide];
-            editReviewTextarea.value = slide.explanation || '';
-            editReviewBox.style.display = editReviewBox.style.display === 'none' ? 'block' : 'none';
-            reviewBox.style.display = 'none';
-        });
-
-        saveEditReviewBtn.addEventListener('click', async () => {
-            const slide = state.unit[state.currentSlide];
-            slide.explanation = editReviewTextarea.value.trim();
-            state.topics[state.unit[0].name][state.currentSlide].explanation = slide.explanation;
-            localStorage.setItem('topics', JSON.stringify(state.topics));
-            const { error } = await supabase.from('topics').update({
-                explanation: slide.explanation,
-                updated_at: new Date().toISOString()
-            }).eq('id', slide.id);
-            feedback.textContent = error ? 'Error saving review!' : 'Review saved!';
-            editReviewBox.style.display = 'none';
-            reviewBox.style.display = 'block';
-            setTimeout(() => feedback.textContent = '', 1000);
-        });
-
-        nextBtn.addEventListener('click', nextSlide);
-
-        function showSlide() {
-            if (!state.unit.length) {
-                content.innerHTML = '<p>No approved slides available. Add some in Supabase or Admin Panel!</p>';
+        function displaySlide() {
+            slideContainer.innerHTML = '';
+            const currentTopic = topicSelect.value;
+            if (!currentTopic || !topics[currentTopic] || topics[currentTopic].length === 0) {
+                slideContainer.innerHTML = '<p class="no-content">No slides available for this topic.</p>';
                 return;
             }
-            const slide = state.unit[state.currentSlide];
-            content.style.display = 'block';
-            feedback.textContent = '';
-            hint.textContent = '';
-            options.innerHTML = '';
-            fillAnswer.style.display = 'none';
-            dragArea.style.display = 'none';
-            submitBtn.style.display = 'none';
-            state.attempt = 0;
-            state.matches = {};
-            notes.value = state.notes[slide.id] || '';
 
-            if (slide.type === 'concept') {
-                content.innerHTML = `<ul style="list-style-type: disc; padding-left: 20px;">${slide.text.split('. ').map(s => `<li>${s.trim()}.</li>`).join('')}</ul>`;
+            const slide = topics[currentTopic][currentSlideIndex];
+            console.log(`Rendering slide ${currentSlideIndex}:`, slide);
+            const slideDiv = document.createElement('div');
+            slideDiv.className = 'slide';
+
+            let content = `
+                <div class="slide-header">
+                    <select id="topicSelect" class="topic-select">${topicSelect.innerHTML}</select>
+                </div>
+                <div class="slide-content">
+            `;
+
+            if (slide.type === 'question' || slide.type === 'mcq') {
+                content += `
+                    <p>${slide.prompt || 'No prompt available'}</p>
+                    ${slide.options ? slide.options.map((opt, i) => `
+                        <label class="option"><input type="radio" name="mcq-${currentSlideIndex}" value="${i}"> ${opt}</label><br>
+                    `).join('') : '<p>No options provided</p>'}
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'display') {
+                content += `
+                    <p>${slide.text || 'No content available'}</p>
+                `;
+            } else if (slide.type === 'fill') {
+                content += `
+                    <p>${slide.prompt ? slide.prompt.replace('___', `<input type="text" id="fill-${currentSlideIndex}" class="cloze-input">`) : 'No prompt provided'}</p>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'match') {
+                content += `
+                    <p>${slide.prompt || 'Match the following'}</p>
+                    <div class="match-container" id="match-${currentSlideIndex}">
+                        <div class="match-left">
+                            ${slide.items ? slide.items.map((item, i) => `<div class="draggable" draggable="true" data-index="${i}">${item.a}</div>`).join('') : 'No items'}
+                        </div>
+                        <div class="match-right">
+                            ${slide.items ? slide.items.map((item, i) => `<div class="dropzone" data-index="${i}">${item.b}</div>`).join('') : 'No items'}
+                        </div>
+                    </div>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'reorder') {
+                content += `
+                    <p>${slide.prompt || 'Reorder the following'}</p>
+                    <div class="reorder-container" id="reorder-${currentSlideIndex}">
+                        ${slide.items ? slide.items.map((item, i) => `<div class="draggable" draggable="true" data-index="${i}">${item}</div>`).join('') : 'No items'}
+                    </div>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'truefalse') {
+                content += `
+                    <p>${slide.prompt || 'No prompt available'}</p>
+                    <label class="option"><input type="radio" name="tf-${currentSlideIndex}" value="true"> True</label><br>
+                    <label class="option"><input type="radio" name="tf-${currentSlideIndex}" value="false"> False</label><br>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'shortanswer') {
+                content += `
+                    <p>${slide.prompt || 'No prompt available'}</p>
+                    <textarea id="sa-${currentSlideIndex}" class="shortanswer-input" placeholder="Your answer..."></textarea>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'cloze') {
+                content += `
+                    <p>${slide.text ? slide.text.replace(/___/g, (_, i) => `<input type="text" id="cloze-${currentSlideIndex}-${i}" class="cloze-input">`) : 'No text provided'}</p>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'image') {
+                content += `
+                    <div class="image-container">
+                        <img src="${slide.imageUrl || 'https://via.placeholder.com/300'}" alt="Image for labeling" class="label-image">
+                        ${slide.labels ? slide.labels.map((label, i) => `
+                            <input type="text" id="image-${currentSlideIndex}-${i}" class="label-input" style="position: absolute; left: ${label.x || 50}px; top: ${label.y || 50}px;">
+                        `).join('') : '<p>No labels provided</p>'}
+                    </div>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
+            } else if (slide.type === 'conceptmap') {
+                content += `
+                    <p>${slide.prompt || 'Connect the concepts'}</p>
+                    <div class="conceptmap-container" id="conceptmap-${currentSlideIndex}">
+                        ${slide.nodes ? slide.nodes.map((node, i) => `
+                            <div class="node" draggable="true" data-index="${i}" style="position: absolute; left: ${i * 100}px; top: 50px;">${node}</div>
+                        `).join('') : '<p>No nodes provided</p>'}
+                    </div>
+                    <div class="submit-container">
+                        <button class="btn btn-primary submit-btn" data-index="${currentSlideIndex}">Submit</button>
+                    </div>
+                    <span class="feedback" id="feedback-${currentSlideIndex}"></span>
+                    <span class="error" id="error-${currentSlideIndex}"></span>
+                `;
             } else {
-                content.innerHTML = `<p>${slide.prompt}</p>`;
-                if (slide.format === 'mcq') {
-                    slide.options.forEach((opt, i) => {
-                        const div = document.createElement('div');
-                        div.className = 'option';
-                        div.innerHTML = opt;
-                        div.onclick = () => checkMCQ(i, slide.correct, slide.id);
-                        options.appendChild(div);
-                    });
-                } else if (slide.format === 'fill') {
-                    fillAnswer.style.display = 'block';
-                    submitBtn.style.display = 'block';
-                } else if (slide.format === 'match') {
-                    dragArea.style.display = 'flex';
-                    dragArea.innerHTML = '<div id="dragA"></div><div id="dragB"></div>';
-                    const dragA = document.getElementById('dragA');
-                    const dragB = document.getElementById('dragB');
-                    slide.items.forEach((item, i) => {
-                        const aDiv = document.createElement('div');
-                        aDiv.className = 'drag-item';
-                        aDiv.draggable = true;
-                        aDiv.dataset.index = i;
-                        aDiv.innerHTML = item.a;
-                        aDiv.addEventListener('dragstart', dragStart);
-                        dragA.appendChild(aDiv);
-
-                        const bDiv = document.createElement('div');
-                        bDiv.className = 'drop-target';
-                        bDiv.dataset.index = i;
-                        bDiv.innerHTML = item.b;
-                        bDiv.addEventListener('dragover', dragOver);
-                        bDiv.addEventListener('drop', drop);
-                        dragB.appendChild(bDiv);
-                    });
-                    submitBtn.style.display = 'block';
-                }
+                content += `<p>Unsupported slide type: ${slide.type}</p>`;
             }
-            updateProgress();
-        }
 
-        function dragStart(e) { e.dataTransfer.setData('text/plain', e.target.dataset.index); }
-        function dragOver(e) { e.preventDefault(); }
-        function drop(e) {
-            e.preventDefault();
-            const aIndex = e.dataTransfer.getData('text');
-            const bIndex = e.target.dataset.index;
-            state.matches[aIndex] = bIndex;
-            e.target.classList.add('matched');
-            e.target.innerHTML = `${state.unit[state.currentSlide].items[bIndex].b} (Matched: ${state.unit[state.currentSlide].items[aIndex].a})`;
-        }
-
-        async function checkMCQ(choice, correct, qId) {
-            if (choice === correct) {
-                await updateSpacedRepetition(qId, true);
-                feedback.textContent = 'Correct!';
-                setTimeout(nextSlide, 1000);
-            } else {
-                state.attempt++;
-                await updateSpacedRepetition(qId, false);
-                feedback.textContent = 'Try again.';
-                hint.textContent = state.attempt <= state.unit[state.currentSlide].hints?.length ? state.unit[state.currentSlide].hints[state.attempt - 1] : 'Review the concept.';
+            if (slide.explanation) {
+                content += `<details class="explanation"><summary>Explanation</summary><div>${slide.explanation}</div></details>`;
             }
-        }
 
-        submitBtn.addEventListener('click', async () => {
-            const slide = state.unit[state.currentSlide];
-            if (slide.format === 'fill') {
-                const answer = fillAnswer.value.trim().toLowerCase();
-                if (answer === slide.answer.toLowerCase()) {
-                    await updateSpacedRepetition(slide.id, true);
-                    feedback.textContent = 'Correct!';
-                    setTimeout(nextSlide, 1000);
-                } else {
-                    state.attempt++;
-                    await updateSpacedRepetition(slide.id, false);
-                    feedback.textContent = 'Try again.';
-                    hint.textContent = state.attempt <= slide.hints?.length ? slide.hints[state.attempt - 1] : 'Review the concept.';
-                }
-            } else if (slide.format === 'match') {
-                const correctPairs = slide.correct.map((v, i) => `${i}-${v}`);
-                const userPairs = Object.entries(state.matches).map(([a, b]) => `${a}-${b}`);
-                const correct = correctPairs.length === userPairs.length && correctPairs.every(p => userPairs.includes(p));
-                if (correct) {
-                    await updateSpacedRepetition(slide.id, true);
-                    feedback.textContent = 'Correct!';
-                    setTimeout(nextSlide, 1000);
-                } else {
-                    state.attempt++;
-                    await updateSpacedRepetition(slide.id, false);
-                    feedback.textContent = 'Try again.';
-                    hint.textContent = state.attempt <= slide.hints?.length ? slide.hints[state.attempt - 1] : 'Review the concept.';
-                }
-            }
-        });
+            content += `</div>`; // Close slide-content
+            content += `
+                <div class="slide-footer">
+                    <button id="nextSlideBtn-${currentSlideIndex}" class="btn btn-primary next-slide-btn" style="display: ${currentSlideIndex < topics[currentTopic].length - 1 ? 'block' : 'none'};">Next Slide</button>
+                </div>
+            `;
 
-        async function updateSpacedRepetition(qId, success) {
-            if (!state.progress[qId]) state.progress[qId] = { attempts: 0, successes: 0, nextReview: Date.now() };
-            state.progress[qId].attempts++;
-            if (success) {
-                state.progress[qId].successes++;
-                const intervals = [1, 3, 7];
-                const level = Math.min(state.progress[qId].successes - 1, intervals.length - 1);
-                state.progress[qId].nextReview = Date.now() + intervals[level] * 24 * 60 * 60 * 1000;
-            }
-            localStorage.setItem('progress', JSON.stringify(state.progress));
-            await supabase.from('progress').upsert({
-                slide_id: qId,
-                attempts: state.progress[qId].attempts,
-                successes: state.progress[qId].successes,
-                next_review: state.progress[qId].nextReview,
-                updated_at: new Date().toISOString()
+            slideDiv.innerHTML = content;
+            slideContainer.appendChild(slideDiv);
+
+            // Attach event listener to the new Next Slide button
+            const nextBtn = slideDiv.querySelector(`#nextSlideBtn-${currentSlideIndex}`);
+            nextBtn.addEventListener('click', () => {
+                console.log(`Next Slide button clicked for slide ${currentSlideIndex}`);
+                nextSlide();
             });
+
+            document.querySelectorAll('.submit-btn').forEach(btn => {
+                btn.addEventListener('click', () => checkAnswer(btn.dataset.index));
+            });
+
+            document.querySelectorAll('.draggable').forEach(draggable => {
+                draggable.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.index);
+                });
+            });
+
+            document.querySelectorAll('.dropzone').forEach(dropzone => {
+                dropzone.addEventListener('dragover', e => e.preventDefault());
+                dropzone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const draggedIndex = e.dataTransfer.getData('text/plain');
+                    e.target.dataset.matchIndex = draggedIndex;
+                });
+            });
+
+            document.querySelectorAll('.reorder-container .draggable').forEach(draggable => {
+                draggable.addEventListener('dragover', e => e.preventDefault());
+                draggable.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const draggedIndex = e.dataTransfer.getData('text/plain');
+                    const dropIndex = e.target.dataset.index;
+                    const container = e.target.parentElement;
+                    const items = Array.from(container.children);
+                    const draggedItem = items[draggedIndex];
+                    const dropItem = items[dropIndex];
+                    container.insertBefore(draggedItem, dropItem);
+                    updateReorderIndices(container);
+                });
+            });
+
+            document.querySelectorAll('.node').forEach(node => {
+                node.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.index);
+                });
+                node.addEventListener('dragend', e => {
+                    e.target.style.left = `${e.clientX - 50}px`;
+                    e.target.style.top = `${e.clientY - 20}px`;
+                });
+            });
+
+            updateReview();
+        }
+
+        function updateReorderIndices(container) {
+            container.querySelectorAll('.draggable').forEach((item, i) => {
+                item.dataset.index = i;
+            });
+        }
+
+        function checkAnswer(index) {
+            const slide = topics[topicSelect.value][index];
+            const feedback = document.getElementById(`feedback-${index}`);
+            const error = document.getElementById(`error-${index}`);
+            let isCorrect = false;
+
+            feedback.textContent = '';
+            error.textContent = '';
+            feedback.style.display = 'none';
+            error.style.display = 'none';
+
+            if (slide.type === 'question' || slide.type === 'mcq') {
+                const selected = document.querySelector(`input[name="mcq-${index}"]:checked`);
+                isCorrect = selected && parseInt(selected.value) === slide.correct;
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Incorrect';
+            } else if (slide.type === 'display') {
+                isCorrect = true;
+                feedback.textContent = 'Viewed';
+            } else if (slide.type === 'fill') {
+                const userAnswer = document.getElementById(`fill-${index}`).value.trim().toLowerCase();
+                isCorrect = userAnswer === slide.answer?.toLowerCase();
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Try again';
+            } else if (slide.type === 'match') {
+                const dropzones = document.querySelectorAll(`#match-${index} .dropzone`);
+                const userOrder = Array.from(dropzones).map(dz => parseInt(dz.dataset.matchIndex));
+                isCorrect = JSON.stringify(userOrder) === JSON.stringify(slide.correct);
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Incorrect';
+            } else if (slide.type === 'reorder') {
+                const items = document.querySelectorAll(`#reorder-${index} .draggable`);
+                const userOrder = Array.from(items).map(item => parseInt(item.dataset.index));
+                isCorrect = JSON.stringify(userOrder) === JSON.stringify(slide.correct);
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Incorrect';
+            } else if (slide.type === 'truefalse') {
+                const selected = document.querySelector(`input[name="tf-${index}"]:checked`);
+                isCorrect = selected && (selected.value === 'true') === slide.correct;
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Incorrect';
+            } else if (slide.type === 'shortanswer') {
+                const userAnswer = document.getElementById(`sa-${index}`).value.trim().toLowerCase();
+                isCorrect = userAnswer === slide.answer?.toLowerCase();
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Try again';
+            } else if (slide.type === 'cloze') {
+                const inputs = document.querySelectorAll(`[id^="cloze-${index}-"]`);
+                const userAnswers = Array.from(inputs).map(input => input.value.trim().toLowerCase());
+                const correctAnswers = slide.answers ? slide.answers.map(a => a.toLowerCase()) : [];
+                isCorrect = JSON.stringify(userAnswers) === JSON.stringify(correctAnswers);
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Try again';
+            } else if (slide.type === 'image') {
+                const inputs = document.querySelectorAll(`[id^="image-${index}-"]`);
+                const userLabels = Array.from(inputs).map(input => input.value.trim().toLowerCase());
+                const correctLabels = slide.correct ? slide.correct.map(c => c.toLowerCase()) : [];
+                isCorrect = JSON.stringify(userLabels) === JSON.stringify(correctLabels);
+                feedback.textContent = isCorrect ? 'Correct!' : '';
+                error.textContent = isCorrect ? '' : 'Try again';
+            } else if (slide.type === 'conceptmap') {
+                feedback.textContent = 'Concept map submitted (visual check only)';
+                isCorrect = true;
+            }
+
+            if (isCorrect) {
+                feedback.style.display = 'inline';
+                reviewData[topicSelect.value] = reviewData[topicSelect.value] || {};
+                reviewData[topicSelect.value][slide.id] = {
+                    prompt: slide.prompt || slide.text || 'Concept Map',
+                    answer: slide.type === 'question' || slide.type === 'mcq' ? slide.options[slide.correct] :
+                            slide.type === 'fill' ? slide.answer :
+                            slide.type === 'match' ? 'Matched' :
+                            slide.type === 'reorder' ? 'Reordered' :
+                            slide.type === 'truefalse' ? slide.correct.toString() :
+                            slide.type === 'shortanswer' ? slide.answer :
+                            slide.type === 'cloze' ? slide.answers.join(', ') :
+                            slide.type === 'image' ? slide.correct.join(', ') :
+                            slide.type === 'conceptmap' ? 'N/A' : 'Viewed',
+                    correct: true
+                };
+                localStorage.setItem('reviewData', JSON.stringify(reviewData));
+                setTimeout(nextSlide, 2000);
+            } else {
+                error.style.display = 'inline';
+            }
+            updateReview();
         }
 
         function nextSlide() {
-            state.currentSlide++;
-            if (state.currentSlide < state.unit.length) {
-                showSlide();
+            const currentTopic = topicSelect.value;
+            console.log(`Advancing from slide ${currentSlideIndex} of ${topics[currentTopic].length - 1}`);
+            if (currentSlideIndex < topics[currentTopic].length - 1) {
+                currentSlideIndex++;
+                displaySlide();
             } else {
-                content.innerHTML = '<h2>Unit Complete!</h2><p>You’ve finished this unit. Check your progress or switch topics!</p>';
-                options.innerHTML = '';
-                fillAnswer.style.display = 'none';
-                dragArea.style.display = 'none';
-                submitBtn.style.display = 'none';
-                nextBtn.style.display = 'none';
+                console.log('No more slides to advance to');
             }
         }
 
-        function updateProgress() {
-            document.getElementById('completed').textContent = state.currentSlide;
-            document.getElementById('total').textContent = state.unit.length;
-            document.getElementById('progress-bar').style.width = `${(state.currentSlide / state.unit.length) * 100}%`;
+        function updateReview() {
+            const currentTopic = topicSelect.value;
+            reviewContent.innerHTML = '';
+            if (reviewData[currentTopic]) {
+                Object.entries(reviewData[currentTopic]).forEach(([slideId, data]) => {
+                    reviewContent.innerHTML += `
+                        <p><strong>${data.prompt}</strong><br>
+                        Your answer: ${data.answer}<br>
+                        ${data.correct ? 'Correct' : 'Incorrect'}</p>
+                    `;
+                });
+            } else {
+                reviewContent.innerHTML = '<p>No review data yet.</p>';
+            }
         }
 
-        function downloadUpdatedData() {
-            const dataStr = `let topics = ${JSON.stringify(state.topics, null, 2)};\nlocalStorage.setItem('topics', JSON.stringify(topics));`;
-            const blob = new Blob([dataStr], { type: 'text/javascript' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'data.js';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        function loadNotes() {
+            const currentTopic = topicSelect.value;
+            notesInput.value = localStorage.getItem(`notes_${currentTopic}`) || '';
         }
 
-        // Initialize
-        async function init() {
-            await loadTopics();
-            await loadSlides('enthalpy'); // Default topic
+        function saveNotes() {
+            const currentTopic = topicSelect.value;
+            localStorage.setItem(`notes_${currentTopic}`, notesInput.value);
+            alert('Notes saved!');
         }
+
+        toggleReviewBtn.addEventListener('click', () => {
+            reviewArea.style.display = reviewArea.style.display === 'none' ? 'block' : 'none';
+        });
+
+        editReviewBtn.addEventListener('click', () => {
+            const isEditable = reviewContent.contentEditable === 'true';
+            reviewContent.contentEditable = !isEditable;
+            editReviewBtn.textContent = isEditable ? 'Edit Review' : 'Save Review';
+            if (isEditable) {
+                const currentTopic = topicSelect.value;
+                reviewData[currentTopic] = reviewData[currentTopic] || {};
+                reviewData[currentTopic]['custom'] = reviewContent.innerText;
+                localStorage.setItem('reviewData', JSON.stringify(reviewData));
+            }
+        });
+
+        saveNotesBtn.addEventListener('click', saveNotes);
+
+        topicSelect.addEventListener('change', () => {
+            currentSlideIndex = 0;
+            displaySlide();
+            loadNotes();
+            updateReview();
+        });
+
         init();
     </script>
 </body>

@@ -1,0 +1,88 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    padding: 20px;
+    text-align: center;
+}
+
+table {
+    width: 95%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+th {
+    background: #2196f3;
+    color: #fff;
+}
+
+td {
+    background: #fff;
+}
+
+button {
+    padding: 8px 16px;
+    margin: 5px;
+    background: #2196f3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1976d2;
+}
+
+.explainer, .explanation {
+    font-size: 0.9em;
+    color: #666;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#edit-form {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #2196f3;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#edit-form label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+#edit-form input, #edit-form textarea {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+#edit-explanation {
+    height: 150px;
+}
+
+#download-btn {
+    background: #4caf50;
+}
+
+#download-btn:hover {
+    background: #388e3c;
+}
